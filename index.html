@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NANO BOT Controller</title>
+
+  <style>
+    body {
+      background: #071323;
+      color: #45DDF5;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 450px;
+      margin: auto;
+      background: #102238;
+      padding: 25px;
+      border-radius: 18px;
+    }
+
+    h1 {
+      letter-spacing: 4px;
+    }
+
+    textarea {
+      width: 95%;
+      height: 110px;
+      font-size: 17px;
+      padding: 10px;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #0786AD;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 16px;
+      margin: 10px 5px;
+      cursor: pointer;
+    }
+
+    #status {
+      color: white;
+      min-height: 24px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>NANO BOT</h1>
+    <p>YOUR PERSONAL DESK ASSISTANT</p>
+
+    <textarea id="message"
+      placeholder="Speak or type your message..."></textarea>
+
+    <br>
+
+    <button onclick="startListening()">
+      🎤 START SPEAKING
+    </button>
+
+    <p id="status">Ready to listen</p>
+
+    <button onclick="sendMessage()">
+      SEND MESSAGE
+    </button>
+  </div>
+
+  <script>
+    function startListening() {
+      const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        document.getElementById("status").textContent =
+          "Speech recognition is not supported.";
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+
+      recognition.lang = "en-US";
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = function() {
+        document.getElementById("status").textContent =
+          "Listening...";
+      };
+
+      recognition.onresult = function(event) {
+        let transcript = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+
+        document.getElementById("message").value = transcript;
+      };
+
+      recognition.onerror = function(event) {
+        document.getElementById("status").textContent =
+          "Error: " + event.error;
+      };
+
+      recognition.onend = function() {
+        document.getElementById("status").textContent =
+          "Speech recognition finished.";
+      };
+
+      recognition.start();
+    }
+
+    function sendMessage() {
+      document.getElementById("status").textContent =
+        "Message sending will be connected in the next step.";
+    }
+  </script>
+</body>
+</html>
