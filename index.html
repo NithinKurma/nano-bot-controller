@@ -121,10 +121,34 @@
       recognition.start();
     }
 
-    function sendMessage() {
-      document.getElementById("status").textContent =
-        "Message sending will be connected in the next step.";
+    async function sendMessage() {
+  const message = document.getElementById("message").value.trim();
+  const status = document.getElementById("status");
+
+  if (!message) {
+    status.textContent = "Please enter a message.";
+    return;
+  }
+
+  status.textContent = "Sending to NANO BOT...";
+
+  try {
+    const response = await fetch(
+      "http://10.109.60.37/say?msg=" + encodeURIComponent(message),
+      { method: "GET", mode: "cors" }
+    );
+
+    if (!response.ok) {
+      throw new Error("ESP32 response: " + response.status);
     }
+
+    status.textContent = "Message sent to NANO BOT!";
+
+  } catch (error) {
+    status.textContent = "Connection failed: " + error.message;
+    console.error(error);
+  }
+}
   </script>
 </body>
 </html>
