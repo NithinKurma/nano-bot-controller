@@ -142,6 +142,7 @@
     }
 
     status.textContent = "Message sent to NANO BOT!";
+    document.getElementById("message").value = "";
 
   } catch (error) {
     status.textContent = "Connection failed: " + error.message;
