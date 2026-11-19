@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NANO BOT</title>
+<title>NANO BOT V4.0</title>
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -116,7 +115,7 @@ h1{font-size:30px}
       </div>
     </div>
     <div class="profileDetails"><span>Username</span><strong id="profileUsername">—</strong></div>
-    <div class="profileDetails"><span>Firmware</span><strong>V3.4</strong></div>
+    <div class="profileDetails"><span>Firmware</span><strong>V4.0</strong></div>
     <div class="profileDetails"><span>Hardware</span><strong>Arduino Nano ESP32</strong></div>
     <div class="profileDetails"><span>Display</span><strong>ST7735S LCD · 128×160</strong></div>
     <div class="profileDetails"><span>Connectivity</span><strong>Wi-Fi · MQTT</strong></div>
@@ -274,7 +273,7 @@ async function sendMessage(){
 
     const payload=JSON.stringify({
       reply:String(data.reply),
-      expression:"friendly"
+      expression:String(data.expression||"normal")
     });
 
     messageWaitingForResponse=true;
