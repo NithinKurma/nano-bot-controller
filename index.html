@@ -1,645 +1,400 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NANO BOT</title>
-
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: #071323;
-  color: #45DDF5;
-  font-family: Arial, sans-serif;
-  min-height: 100vh;
-  padding: 25px 15px;
-}
-
-.container {
-  max-width: 480px;
-  margin: 35px auto;
-  background: #102238;
-  padding: 28px;
-  border-radius: 22px;
-}
-
-h1 {
-  letter-spacing: 5px;
-  font-size: 36px;
-}
-
-.subtitle {
-  color: #45DDF5;
-  margin-bottom: 25px;
-}
-
-input, textarea {
-  width: 100%;
-  padding: 15px;
-  border-radius: 12px;
-  border: none;
-  font-size: 17px;
-  margin: 10px 0;
-  outline: none;
-}
-
-button {
-  background: #0786AD;
-  color: white;
-  border: none;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-button:hover {
-  background: #079CC6;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* LOGIN */
-
-#loginPage {
-  text-align: center;
-}
-
-.passwordBox {
-  display: flex;
-  align-items: center;
-  background: white;
-  border-radius: 12px;
-  margin: 10px 0;
-}
-
-.passwordBox input {
-  margin: 0;
-}
-
-.passwordBox button {
-  background: transparent;
-  color: #333;
-  padding: 12px;
-  font-size: 20px;
-}
-
-#loginButton {
-  width: 100%;
-  margin-top: 15px;
-}
-
-/* CONTROLLER */
-
-#controllerPage {
-  display: none;
-}
-
-.topBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-  text-align: left;
-  gap: 10px;
-}
-
-.userDetails {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.userIcon {
-  font-size: 27px;
-}
-
-.userName {
-  color: white;
-  font-weight: bold;
-}
-
-.userStatus {
-  color: #35E5A1;
-  font-size: 13px;
-  margin-top: 4px;
-}
-
-.logoutButton {
-  background: #17304A;
-  color: #45DDF5;
-  padding: 12px;
-  font-size: 20px;
-}
-
-.botTitle {
-  text-align: center;
-}
-
-#connectionStatus {
-  font-weight: bold;
-  margin: 15px 0 30px;
-}
-
-.connected {
-  color: #35E5A1;
-}
-
-.disconnected {
-  color: #FF6868;
-}
-
-/* MESSAGE AREA */
-
-.messageRow {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.messageRow textarea {
-  flex: 1;
-  height: 100px;
-  resize: none;
-  margin: 0;
-}
-
-.micButton {
-  width: 58px;
-  min-width: 58px;
-  font-size: 24px;
-  padding: 10px;
-}
-
-.sendButton {
-  width: 100%;
-  margin-top: 15px;
-}
-
-#status {
-  color: white;
-  min-height: 25px;
-  margin-top: 20px;
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 22px 18px;
-    margin-top: 15px;
-  }
-
-  h1 {
-    font-size: 30px;
-  }
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:18px;background:#071323;color:#45DDF5;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center}
+button{border:0;border-radius:12px;background:#0786AD;color:#fff;padding:13px 18px;font-size:16px;cursor:pointer;transition:background .2s,opacity .2s}
+button:hover{background:#079CC6}
+button:disabled{opacity:.5;cursor:not-allowed}
+.container{width:100%;max-width:460px;background:#102238;border-radius:22px;padding:25px;box-shadow:0 12px 35px #0003}
+h1{font-size:34px;letter-spacing:5px;margin:0 0 10px}
+.subtitle{color:#8CA9C2;margin:0 0 24px;font-size:13px;letter-spacing:1px}
+input,textarea{width:100%;border:0;border-radius:12px;padding:15px;font-size:16px;outline:none;margin:10px 0;color:#14283C;background:#fff}
+#loginPage{text-align:center}
+.passwordBox{display:flex;align-items:center;background:#fff;border-radius:12px;margin:10px 0}
+.passwordBox input{margin:0}
+.passwordBox button{background:transparent;color:#334;padding:12px;font-size:20px}
+#loginButton{width:100%;margin-top:12px}
+#controllerPage{display:none}
+.topBar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;position:relative}
+.brand{display:flex;align-items:center;gap:11px}
+.botIcon{width:44px;height:44px;border-radius:14px;background:#173650;display:grid;place-items:center;font-size:24px}
+.brandTitle{font-size:20px;font-weight:bold;letter-spacing:2px}
+.onlineStatus{font-size:12px;color:#35E5A1;margin-top:5px}
+.menuButton{background:#17304A;color:#45DDF5;font-size:22px;padding:10px 14px}
+.botTitle{text-align:center;margin:12px 0 30px}
+.botTitle h1{font-size:32px}
+.connectionStatus{font-size:13px;font-weight:bold;margin:16px 0;color:#35E5A1}
+.connectionStatus.disconnected{color:#FF6868}
+.messageRow{display:flex;align-items:stretch;gap:9px}
+.messageRow textarea{flex:1;height:94px;resize:none;margin:0;line-height:1.4}
+.micButton{width:58px;min-width:58px;font-size:22px;padding:10px;background:#173650;color:#45DDF5}
+.sendButton{width:100%;margin-top:12px}
+.status{color:#D5E5F2;min-height:22px;margin:18px 0 0;font-size:14px;text-align:center}
+.menuPanel{display:none;position:absolute;top:60px;right:0;width:230px;background:#17304A;border:1px solid #29435D;border-radius:15px;padding:8px;box-shadow:0 12px 30px #0005;z-index:5}
+.menuPanel.show{display:block}
+.menuItem{width:100%;background:transparent;color:#D9EAF5;text-align:left;padding:12px;border-radius:10px}
+.menuItem:hover{background:#234562}
+.menuItem.logout{color:#FF7777}
+.modalBackdrop{display:none;position:fixed;inset:0;background:#0009;z-index:10;align-items:center;justify-content:center;padding:20px}
+.modalBackdrop.show{display:flex}
+.profileCard{width:100%;max-width:360px;background:#102238;border:1px solid #29435D;border-radius:20px;padding:22px;box-shadow:0 15px 40px #0006}
+.profileHeader{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.profileHeader h2{margin:0;color:#45DDF5;font-size:20px}
+.profileHeader p{margin:5px 0 0;color:#35E5A1;font-size:13px}
+.profileDetails{display:grid;grid-template-columns:1fr auto;gap:13px;padding:14px 0;border-top:1px solid #29435D;font-size:14px}
+.profileDetails span{color:#8CA9C2}
+.profileDetails strong{color:#D9EAF5;text-align:right;font-weight:normal}
+.closeProfile{width:100%;background:#17304A;color:#45DDF5;margin-top:16px}
+@media(max-width:480px){
+body{padding:12px}
+.container{padding:22px 18px}
+.botTitle h1{font-size:29px}
+h1{font-size:30px}
 }
 </style>
 </head>
-
 <body>
-
 <div class="container">
-
-  <!-- LOGIN PAGE -->
-
-  <div id="loginPage">
-
+  <section id="loginPage">
     <h1>NANO BOT</h1>
     <p class="subtitle">YOUR PERSONAL DESK ASSISTANT</p>
-
-    <input
-      type="text"
-      id="mqttUsername"
-      placeholder="Username"
-      autocomplete="username"
-    >
-
+    <input type="text" id="mqttUsername" placeholder="Username" autocomplete="username">
     <div class="passwordBox">
-      <input
-        type="password"
-        id="mqttPassword"
-        placeholder="Password"
-        autocomplete="current-password"
-      >
-
-      <button
-        type="button"
-        onclick="togglePassword()"
-        id="passwordToggle"
-        title="Show password"
-      >👁️</button>
+      <input type="password" id="mqttPassword" placeholder="Password" autocomplete="current-password">
+      <button type="button" id="passwordToggle" onclick="togglePassword()" title="Show password">👁️</button>
     </div>
+    <button id="loginButton" onclick="connectMQTT()">LOGIN</button>
+    <p id="loginStatus" class="status"></p>
+  </section>
 
-    <button id="loginButton" onclick="connectMQTT()">
-      LOGIN
-    </button>
-
-    <p id="loginStatus"></p>
-
-  </div>
-
-
-  <!-- MAIN CONTROLLER -->
-
-  <div id="controllerPage">
-
+  <section id="controllerPage">
     <div class="topBar">
-
-      <div class="userDetails">
-        <span class="userIcon">👤</span>
-
+      <div class="brand">
+        <div class="botIcon">🤖</div>
         <div>
-          <div class="userName" id="displayUsername">
-            User
-          </div>
-
-          <div class="userStatus">
-            ● Connected
-          </div>
+          <div class="brandTitle">NANO BOT</div>
+          <div class="onlineStatus" id="userStatus">● Connected</div>
         </div>
       </div>
-
-      <button
-        class="logoutButton"
-        onclick="logout()"
-        title="Logout"
-      >
-        ↪
-      </button>
-
+      <button class="menuButton" id="menuButton" onclick="toggleMenu()" aria-label="Open menu">☰</button>
+      <div class="menuPanel" id="menuPanel">
+        <button class="menuItem" onclick="openProfile()">👤 Profile & device info</button>
+        <button class="menuItem logout" onclick="logout()">↪ Logout</button>
+      </div>
     </div>
-
 
     <div class="botTitle">
-
       <h1>NANO BOT</h1>
-
-      <p class="subtitle">
-        YOUR PERSONAL DESK ASSISTANT
-      </p>
-
-      <p id="connectionStatus" class="connected">
-        ● MQTT CONNECTED
-      </p>
-
+      <p class="subtitle">YOUR PERSONAL DESK ASSISTANT</p>
+      <p id="connectionStatus" class="connectionStatus">● MQTT CONNECTED</p>
     </div>
-
-
-    <!-- MESSAGE INPUT + MICROPHONE -->
 
     <div class="messageRow">
-
-      <textarea
-        id="message"
-        placeholder="Type your message to NANO BOT..."
-      ></textarea>
-
-      <button
-        class="micButton"
-        onclick="startListening()"
-        title="Voice input"
-      >
-        🎙️
-      </button>
-
+      <textarea id="message" placeholder="Message NANO BOT..." rows="3" aria-label="Message"></textarea>
+      <button class="micButton" onclick="startListening()" title="Voice input" aria-label="Voice input">🎙️</button>
     </div>
 
-
-    <button
-      id="sendButton"
-      class="sendButton"
-      onclick="sendMessage()"
-    >
-      SEND MESSAGE
-    </button>
-
-    <p id="status">
-      Ready to communicate.
-    </p>
-
-  </div>
-
+    <button id="sendButton" class="sendButton" onclick="sendMessage()">SEND MESSAGE</button>
+    <p id="status" class="status">Ready to communicate.</p>
+  </section>
 </div>
 
+<div class="modalBackdrop" id="profileBackdrop" onclick="closeProfileOnBackdrop(event)">
+  <div class="profileCard" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <div class="profileHeader">
+      <div class="botIcon">🤖</div>
+      <div>
+        <h2 id="profileTitle">NANO BOT</h2>
+        <p id="profileDeviceStatus">● Device status unknown</p>
+      </div>
+    </div>
+    <div class="profileDetails"><span>Username</span><strong id="profileUsername">—</strong></div>
+    <div class="profileDetails"><span>Firmware</span><strong>V3.4</strong></div>
+    <div class="profileDetails"><span>Hardware</span><strong>Arduino Nano ESP32</strong></div>
+    <div class="profileDetails"><span>Display</span><strong>ST7735S LCD · 128×160</strong></div>
+    <div class="profileDetails"><span>Connectivity</span><strong>Wi-Fi · MQTT</strong></div>
+    <div class="profileDetails"><span>AI engine</span><strong>Gemini</strong></div>
+    <button class="closeProfile" onclick="closeProfile()">CLOSE</button>
+  </div>
+</div>
 
 <script>
+const brokerURL="wss://broker.mqtty.com:8884/mqtt";
+const responseTopic="nano-esp32/response";
+const statusTopic="nano-esp32/status";
+const aiResponseTopic="nano-esp32/ai-response";
+const AI_BACKEND_URL="https://script.google.com/macros/s/AKfycby77WiD-GMrg-hqRhMBfy1-igGaDCU_xPOZB0HD6ByDHxu_qZ3jzh0U7behmQ9t-gHv/exec";
 
-// MQTT SETTINGS
+let mqttClient=null;
+let messageWaitingForResponse=false;
+let currentUsername="";
+let deviceOnline=false;
+let isSending=false;
 
-const brokerURL = "wss://broker.mqtty.com:8884/mqtt";
+function connectMQTT(){
+  const username=document.getElementById("mqttUsername").value.trim();
+  const password=document.getElementById("mqttPassword").value;
+  const loginStatus=document.getElementById("loginStatus");
+  const loginButton=document.getElementById("loginButton");
 
-const commandTopic = "nano-esp32/command";
-const responseTopic = "nano-esp32/response";
-
-const AI_BACKEND_URL = "https://script.google.com/macros/s/AKfycby77WiD-GMrg-hqRhMBfy1-igGaDCU_xPOZB0HD6ByDHxu_qZ3jzh0U7behmQ9t-gHv/exec";
-
-let mqttClient = null;
-let messageWaitingForResponse = false;
-
-
-// LOGIN / CONNECT
-
-function connectMQTT() {
-
-  const username =
-    document.getElementById("mqttUsername").value.trim();
-
-  const password =
-    document.getElementById("mqttPassword").value;
-
-  const loginStatus =
-    document.getElementById("loginStatus");
-
-  if (!username || !password) {
-    loginStatus.textContent =
-      "Please enter username and password.";
+  if(!username||!password){
+    loginStatus.textContent="Please enter username and password.";
     return;
   }
 
-  loginStatus.textContent = "Connecting to NANO BOT...";
+  loginButton.disabled=true;
+  loginStatus.textContent="Connecting to NANO BOT...";
 
-  const clientId =
-    "NanoBotWeb-" + Math.random().toString(16).slice(2, 10);
+  const clientId="NanoBotWeb-"+Math.random().toString(16).slice(2,10);
 
-  mqttClient = mqtt.connect(brokerURL, {
-    username: username,
-    password: password,
-    clientId: clientId,
-    protocolVersion: 4,
-    clean: true,
-    connectTimeout: 10000,
-    reconnectPeriod: 0
+  mqttClient=mqtt.connect(brokerURL,{
+    username:username,
+    password:password,
+    clientId:clientId,
+    protocolVersion:4,
+    clean:true,
+    connectTimeout:10000,
+    reconnectPeriod:0
   });
 
-
-  mqttClient.on("connect", function() {
-
-    mqttClient.subscribe(responseTopic, function(error) {
-
-      if (error) {
-        loginStatus.textContent =
-          "Response subscription failed.";
+  mqttClient.on("connect",function(){
+    mqttClient.subscribe([responseTopic,statusTopic],function(error){
+      if(error){
+        loginStatus.textContent="MQTT subscription failed.";
+        loginButton.disabled=false;
         return;
       }
 
-      // Show controller after connection and subscription
-
-      document.getElementById("loginPage").style.display =
-        "none";
-
-      document.getElementById("controllerPage").style.display =
-        "block";
-
-      document.getElementById("displayUsername").textContent =
-        username;
-
-      document.getElementById("connectionStatus").textContent =
-        "● MQTT CONNECTED";
-
-      document.getElementById("connectionStatus").className =
-        "connected";
-
-      document.getElementById("status").textContent =
-        "Ready to communicate.";
-
+      currentUsername=username;
+      document.getElementById("loginPage").style.display="none";
+      document.getElementById("controllerPage").style.display="block";
+      document.getElementById("profileUsername").textContent=username;
+      updateConnectionStatus(true);
+      document.getElementById("status").textContent="Ready to communicate.";
     });
-
   });
 
+  mqttClient.on("message",function(topic,payload){
+    const received=payload.toString().trim().toLowerCase();
 
-  // RECEIVE NANO BOT RESPONSE
-
-  mqttClient.on("message", function(topic, payload) {
-
-    if (topic === responseTopic && messageWaitingForResponse) {
-
-      messageWaitingForResponse = false;
-
-      document.getElementById("status").textContent =
-        "🤖 NanoBot received your message!";
-
+    if(topic===statusTopic){
+      deviceOnline=received.includes("online")||received.includes("connected");
+      updateDeviceStatus();
     }
 
-  });
-
-
-  // MQTT ERROR
-
-  mqttClient.on("error", function(error) {
-
-    loginStatus.textContent =
-      "Connection error: " + error.message;
-
-  });
-
-
-  // CONNECTION CLOSED
-
-  mqttClient.on("close", function() {
-
-    if (document.getElementById("controllerPage").style.display === "block") {
-
-      document.getElementById("connectionStatus").textContent =
-        "● DISCONNECTED";
-
-      document.getElementById("connectionStatus").className =
-        "disconnected";
-
-      document.getElementById("status").textContent =
-        "Connection lost. Please login again.";
-
+    if(topic===responseTopic&&messageWaitingForResponse){
+      messageWaitingForResponse=false;
+      document.getElementById("status").textContent="Delivered to NANO BOT ✓";
     }
-
   });
 
+  mqttClient.on("error",function(error){
+    loginStatus.textContent="Connection error: "+error.message;
+    loginButton.disabled=false;
+  });
+
+  mqttClient.on("close",function(){
+    loginButton.disabled=false;
+
+    if(document.getElementById("controllerPage").style.display==="block"){
+      updateConnectionStatus(false);
+      document.getElementById("status").textContent="Connection lost. Please login again.";
+    }
+  });
 }
 
+function updateConnectionStatus(connected){
+  const status=document.getElementById("connectionStatus");
+  status.textContent=connected?"● MQTT CONNECTED":"● DISCONNECTED";
+  status.className="connectionStatus"+(connected?"":" disconnected");
+  document.getElementById("userStatus").textContent=connected?"● Connected":"● Disconnected";
+}
 
-// SHOW / HIDE PASSWORD
+function updateDeviceStatus(){
+  const label=document.getElementById("profileDeviceStatus");
+  label.textContent=deviceOnline?"● Device online":"● Device status unknown/offline";
+  label.style.color=deviceOnline?"#35E5A1":"#8CA9C2";
+}
 
-function togglePassword() {
+function togglePassword(){
+  const input=document.getElementById("mqttPassword");
+  const button=document.getElementById("passwordToggle");
 
-  const passwordInput =
-    document.getElementById("mqttPassword");
-
-  const toggleButton =
-    document.getElementById("passwordToggle");
-
-  if (passwordInput.type === "password") {
-
-    passwordInput.type = "text";
-    toggleButton.textContent = "🙈";
-    toggleButton.title = "Hide password";
-
-  } else {
-
-    passwordInput.type = "password";
-    toggleButton.textContent = "👁️";
-    toggleButton.title = "Show password";
-
+  if(input.type==="password"){
+    input.type="text";
+    button.textContent="🙈";
+    button.title="Hide password";
+  }else{
+    input.type="password";
+    button.textContent="👁️";
+    button.title="Show password";
   }
-
 }
-// SEND MESSAGE TO AI
 
-async function sendMessage() {
+async function sendMessage(){
+  const input=document.getElementById("message");
+  const message=input.value.trim();
+  const status=document.getElementById("status");
+  const sendButton=document.getElementById("sendButton");
 
-  const message =
-    document.getElementById("message").value.trim();
-
-  const status =
-    document.getElementById("status");
-
-  const sendButton =
-    document.getElementById("sendButton");
-
-  if (!message) {
-    status.textContent = "Please enter a message.";
+  if(!message){
+    status.textContent="Please enter a message.";
     return;
   }
 
-  status.textContent = "NANO BOT is thinking... 🤖";
-  sendButton.disabled = true;
-
-  try {
-
-    const response = await fetch(AI_BACKEND_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain"
-      },
-      body: JSON.stringify({
-        message: message
-      })
-    });
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || "AI request failed");
-    }
-
-    status.textContent = "🤖 " + data.reply;
-
-    document.getElementById("message").value = "";
-
-  } catch (error) {
-
-    status.textContent =
-      "AI connection failed: " + error.message;
-
-  } finally {
-
-    sendButton.disabled = false;
-
-  }
-
-}
-// VOICE INPUT
-
-function startListening() {
-
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
-
-  const status =
-    document.getElementById("status");
-
-  if (!SpeechRecognition) {
-
-    status.textContent =
-      "Speech recognition is not supported.";
-
+  if(!mqttClient||!mqttClient.connected){
+    status.textContent="MQTT is disconnected. Please login again.";
     return;
   }
 
-  const recognition = new SpeechRecognition();
+  if(isSending)return;
 
-  recognition.lang = "en-US";
-  recognition.continuous = false;
-  recognition.interimResults = true;
+  isSending=true;
+  sendButton.disabled=true;
+  status.textContent="Sending message...";
 
-  recognition.onstart = function() {
+  try{
+    const response=await fetch(AI_BACKEND_URL,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain"},
+      body:JSON.stringify({message:message})
+    });
 
-    status.textContent = "Listening...";
+    const data=await response.json();
 
+    if(!data.success)throw new Error(data.error||"AI request failed");
+    if(!data.reply)throw new Error("AI returned an empty response.");
+
+    const payload=JSON.stringify({
+      reply:String(data.reply),
+      expression:"friendly"
+    });
+
+    messageWaitingForResponse=true;
+
+    mqttClient.publish(aiResponseTopic,payload,{qos:0},function(error){
+      if(error){
+        messageWaitingForResponse=false;
+        status.textContent="MQTT publish failed.";
+        return;
+      }
+
+      input.value="";
+      status.textContent="Message sent ✓";
+    });
+
+  }catch(error){
+    messageWaitingForResponse=false;
+    status.textContent="Unable to send: "+error.message;
+  }finally{
+    isSending=false;
+    sendButton.disabled=false;
+  }
+}
+
+function startListening(){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const status=document.getElementById("status");
+
+  if(!SpeechRecognition){
+    status.textContent="Speech recognition is not supported in this browser.";
+    return;
+  }
+
+  const recognition=new SpeechRecognition();
+  recognition.lang="en-US";
+  recognition.continuous=false;
+  recognition.interimResults=true;
+
+  recognition.onstart=function(){
+    status.textContent="Listening...";
   };
 
-  recognition.onresult = function(event) {
+  recognition.onresult=function(event){
+    let transcript="";
 
-    let transcript = "";
-
-    for (let i = 0; i < event.results.length; i++) {
-
-      transcript +=
-        event.results[i][0].transcript;
-
+    for(let i=0;i<event.results.length;i++){
+      transcript+=event.results[i][0].transcript;
     }
 
-    document.getElementById("message").value =
-      transcript;
+    document.getElementById("message").value=transcript;
 
-    if (event.results[event.results.length - 1].isFinal) {
-
-      status.textContent = "Message ready to send.";
-
+    if(event.results[event.results.length-1].isFinal){
+      status.textContent="Message ready to send.";
     }
-
   };
 
-  recognition.onerror = function(event) {
-
-    status.textContent =
-      "Voice input error: " + event.error;
-
+  recognition.onerror=function(event){
+    status.textContent="Voice input error: "+event.error;
   };
 
   recognition.start();
-
 }
 
+document.getElementById("message").addEventListener("keydown",function(event){
+  if(event.key==="Enter"&&!event.shiftKey){
+    event.preventDefault();
+    sendMessage();
+  }
+});
 
-// LOGOUT
+function toggleMenu(){
+  document.getElementById("menuPanel").classList.toggle("show");
+}
 
-function logout() {
+function openProfile(){
+  document.getElementById("menuPanel").classList.remove("show");
+  document.getElementById("profileUsername").textContent=currentUsername||"—";
+  updateDeviceStatus();
+  document.getElementById("profileBackdrop").classList.add("show");
+}
 
-  messageWaitingForResponse = false;
+function closeProfile(){
+  document.getElementById("profileBackdrop").classList.remove("show");
+}
 
-  if (mqttClient) {
+function closeProfileOnBackdrop(event){
+  if(event.target.id==="profileBackdrop"){
+    closeProfile();
+  }
+}
 
+document.addEventListener("click",function(event){
+  const panel=document.getElementById("menuPanel");
+  const button=document.getElementById("menuButton");
+
+  if(!panel.contains(event.target)&&!button.contains(event.target)){
+    panel.classList.remove("show");
+  }
+});
+
+function logout(){
+  messageWaitingForResponse=false;
+  deviceOnline=false;
+
+  if(mqttClient){
     mqttClient.end(true);
-    mqttClient = null;
-
+    mqttClient=null;
   }
 
-  document.getElementById("controllerPage").style.display =
-    "none";
-
-  document.getElementById("loginPage").style.display =
-    "block";
-
-  document.getElementById("mqttPassword").value = "";
-
-  document.getElementById("mqttUsername").value = "";
-
-  document.getElementById("loginStatus").textContent =
-    "Logged out successfully.";
-
-  document.getElementById("message").value = "";
-
+  document.getElementById("controllerPage").style.display="none";
+  document.getElementById("loginPage").style.display="block";
+  document.getElementById("mqttPassword").value="";
+  document.getElementById("mqttUsername").value="";
+  document.getElementById("loginStatus").textContent="Logged out successfully.";
+  document.getElementById("message").value="";
+  document.getElementById("menuPanel").classList.remove("show");
+  closeProfile();
+  currentUsername="";
+  document.getElementById("loginButton").disabled=false;
 }
-
 </script>
-
 </body>
 </html>
