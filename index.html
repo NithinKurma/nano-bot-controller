@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -341,6 +340,8 @@ const brokerURL = "wss://broker.mqtty.com:8884/mqtt";
 const commandTopic = "nano-esp32/command";
 const responseTopic = "nano-esp32/response";
 
+const AI_BACKEND_URL = "https://script.google.com/macros/s/AKfycby77WiD-GMrg-hqRhMBfy1-igGaDCU_xPOZB0HD6ByDHxu_qZ3jzh0U7behmQ9t-gHv/exec";
+
 let mqttClient = null;
 let messageWaitingForResponse = false;
 
@@ -488,11 +489,9 @@ function togglePassword() {
   }
 
 }
+// SEND MESSAGE TO AI
 
-
-// SEND MESSAGE
-
-function sendMessage() {
+async function sendMessage() {
 
   const message =
     document.getElementById("message").value.trim();
@@ -500,45 +499,51 @@ function sendMessage() {
   const status =
     document.getElementById("status");
 
+  const sendButton =
+    document.getElementById("sendButton");
+
   if (!message) {
     status.textContent = "Please enter a message.";
     return;
   }
 
-  if (!mqttClient || !mqttClient.connected) {
-    status.textContent = "MQTT is disconnected.";
-    return;
+  status.textContent = "NANO BOT is thinking... 🤖";
+  sendButton.disabled = true;
+
+  try {
+
+    const response = await fetch(AI_BACKEND_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain"
+      },
+      body: JSON.stringify({
+        message: message
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "AI request failed");
+    }
+
+    status.textContent = "🤖 " + data.reply;
+
+    document.getElementById("message").value = "";
+
+  } catch (error) {
+
+    status.textContent =
+      "AI connection failed: " + error.message;
+
+  } finally {
+
+    sendButton.disabled = false;
+
   }
 
-  status.textContent = "Sending message to NANO BOT...";
-
-  messageWaitingForResponse = true;
-
-  mqttClient.publish(
-    commandTopic,
-    message,
-    { qos: 0 },
-    function(error) {
-
-      if (error) {
-
-        messageWaitingForResponse = false;
-
-        status.textContent =
-          "Message sending failed.";
-
-      } else {
-
-        document.getElementById("message").value = "";
-
-      }
-
-    }
-  );
-
 }
-
-
 // VOICE INPUT
 
 function startListening() {
