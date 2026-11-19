@@ -1,9 +1,13 @@
+=
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NANO BOT Controller</title>
+
+  <!-- MQTT library -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
   <style>
     body {
@@ -26,13 +30,18 @@
       letter-spacing: 4px;
     }
 
-    textarea {
+    input, textarea {
       width: 95%;
-      height: 110px;
       font-size: 17px;
-      padding: 10px;
+      padding: 12px;
       border-radius: 10px;
       box-sizing: border-box;
+      margin: 8px 0;
+    }
+
+    textarea {
+      height: 110px;
+      resize: none;
     }
 
     button {
@@ -46,20 +55,72 @@
       cursor: pointer;
     }
 
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+
     #status {
       color: white;
       min-height: 24px;
+    }
+
+    #connectionStatus {
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    .connected {
+      color: #35e59b;
+    }
+
+    .disconnected {
+      color: #ff6868;
     }
   </style>
 </head>
 
 <body>
+
   <div class="container">
+
     <h1>NANO BOT</h1>
     <p>YOUR PERSONAL DESK ASSISTANT</p>
 
-    <textarea id="message"
-      placeholder="Speak or type your message..."></textarea>
+    <p id="connectionStatus" class="disconnected">
+      ● Disconnected
+    </p>
+
+    <input
+      type="text"
+      id="mqttUsername"
+      placeholder="MQTT Username"
+      autocomplete="username"
+    >
+
+    <input
+      type="password"
+      id="mqttPassword"
+      placeholder="MQTT Password"
+      autocomplete="current-password"
+    >
+
+    <br>
+
+    <button id="connectButton" onclick="connectMQTT()">
+      CONNECT
+    </button>
+
+    <button id="disconnectButton" onclick="disconnectMQTT()" disabled>
+      DISCONNECT
+    </button>
+
+    <hr>
+
+    <textarea
+      id="message"
+      placeholder="Type your message to NANO BOT..."
+    ></textarea>
 
     <br>
 
@@ -67,23 +128,218 @@
       🎤 START SPEAKING
     </button>
 
-    <p id="status">Ready to listen</p>
+    <p id="status">Ready</p>
 
-    <button onclick="sendMessage()">
+    <button id="sendButton" onclick="sendMessage()" disabled>
       SEND MESSAGE
     </button>
+
   </div>
 
   <script>
+
+    // MQTT CONFIGURATION
+
+    const brokerURL = "wss://broker.mqtty.com:8884/mqtt";
+
+    const commandTopic = "nano-esp32/command";
+    const responseTopic = "nano-esp32/response";
+
+    let mqttClient = null;
+
+
+    // CONNECT TO MQTT
+
+    function connectMQTT() {
+
+      const username =
+        document.getElementById("mqttUsername").value.trim();
+
+      const password =
+        document.getElementById("mqttPassword").value;
+
+      const status =
+        document.getElementById("status");
+
+      if (!username || !password) {
+        status.textContent =
+          "Enter your MQTT username and password.";
+        return;
+      }
+
+      status.textContent = "Connecting to MQTT...";
+
+      const clientId =
+        "NanoBotWeb-" + Math.random().toString(16).slice(2, 10);
+
+      mqttClient = mqtt.connect(brokerURL, {
+        username: username,
+        password: password,
+        clientId: clientId,
+        protocolVersion: 4,
+        clean: true,
+        connectTimeout: 10000,
+        reconnectPeriod: 0
+      });
+
+      mqttClient.on("connect", function () {
+
+        document.getElementById("connectionStatus").textContent =
+          "● Connected to MQTT";
+
+        document.getElementById("connectionStatus").className =
+          "connected";
+
+        document.getElementById("status").textContent =
+          "NANO BOT is ready!";
+
+        document.getElementById("sendButton").disabled = false;
+        document.getElementById("connectButton").disabled = true;
+        document.getElementById("disconnectButton").disabled = false;
+
+        mqttClient.subscribe(responseTopic, function (error) {
+
+          if (error) {
+            document.getElementById("status").textContent =
+              "Connected, but response subscription failed.";
+          }
+
+        });
+
+      });
+
+
+      // RESPONSE RECEIVED
+
+      mqttClient.on("message", function (topic, payload) {
+
+        if (topic === responseTopic) {
+
+          document.getElementById("status").textContent =
+            "NANO BOT responded successfully!";
+
+        }
+
+      });
+
+
+      // CONNECTION ERROR
+
+      mqttClient.on("error", function (error) {
+
+        document.getElementById("status").textContent =
+          "MQTT error: " + error.message;
+
+      });
+
+
+      // CONNECTION CLOSED
+
+      mqttClient.on("close", function () {
+
+        document.getElementById("connectionStatus").textContent =
+          "● Disconnected";
+
+        document.getElementById("connectionStatus").className =
+          "disconnected";
+
+        document.getElementById("sendButton").disabled = true;
+        document.getElementById("connectButton").disabled = false;
+        document.getElementById("disconnectButton").disabled = true;
+
+      });
+
+    }
+
+
+    // DISCONNECT
+
+    function disconnectMQTT() {
+
+      if (mqttClient) {
+        mqttClient.end(true);
+        mqttClient = null;
+      }
+
+      document.getElementById("connectionStatus").textContent =
+        "● Disconnected";
+
+      document.getElementById("connectionStatus").className =
+        "disconnected";
+
+      document.getElementById("status").textContent =
+        "Disconnected from MQTT";
+
+      document.getElementById("sendButton").disabled = true;
+      document.getElementById("connectButton").disabled = false;
+      document.getElementById("disconnectButton").disabled = true;
+
+    }
+
+
+    // SEND MESSAGE TO NANO BOT
+
+    function sendMessage() {
+
+      const message =
+        document.getElementById("message").value.trim();
+
+      const status =
+        document.getElementById("status");
+
+      if (!message) {
+        status.textContent = "Please enter a message.";
+        return;
+      }
+
+      if (!mqttClient || !mqttClient.connected) {
+        status.textContent = "Please connect to MQTT first.";
+        return;
+      }
+
+      status.textContent = "Sending to NANO BOT...";
+
+      mqttClient.publish(
+        commandTopic,
+        message,
+        { qos: 0 },
+        function (error) {
+
+          if (error) {
+
+            status.textContent =
+              "Message sending failed.";
+
+          } else {
+
+            status.textContent =
+              "Message sent to NANO BOT!";
+
+            document.getElementById("message").value = "";
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // VOICE INPUT
+
     function startListening() {
+
       const SpeechRecognition =
         window.SpeechRecognition ||
         window.webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
+
         document.getElementById("status").textContent =
           "Speech recognition is not supported.";
+
         return;
+
       }
 
       const recognition = new SpeechRecognition();
@@ -92,63 +348,48 @@
       recognition.continuous = false;
       recognition.interimResults = true;
 
-      recognition.onstart = function() {
+      recognition.onstart = function () {
+
         document.getElementById("status").textContent =
           "Listening...";
+
       };
 
-      recognition.onresult = function(event) {
+      recognition.onresult = function (event) {
+
         let transcript = "";
 
         for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+
+          transcript +=
+            event.results[i][0].transcript;
+
         }
 
-        document.getElementById("message").value = transcript;
+        document.getElementById("message").value =
+          transcript;
+
       };
 
-      recognition.onerror = function(event) {
+      recognition.onerror = function (event) {
+
         document.getElementById("status").textContent =
-          "Error: " + event.error;
+          "Speech error: " + event.error;
+
       };
 
-      recognition.onend = function() {
+      recognition.onend = function () {
+
         document.getElementById("status").textContent =
           "Speech recognition finished.";
+
       };
 
       recognition.start();
+
     }
 
-    async function sendMessage() {
-  const message = document.getElementById("message").value.trim();
-  const status = document.getElementById("status");
-
-  if (!message) {
-    status.textContent = "Please enter a message.";
-    return;
-  }
-
-  status.textContent = "Sending to NANO BOT...";
-
-  try {
-    const response = await fetch(
-      "http://10.109.60.37/say?msg=" + encodeURIComponent(message),
-      { method: "GET", mode: "cors" }
-    );
-
-    if (!response.ok) {
-      throw new Error("ESP32 response: " + response.status);
-    }
-
-    status.textContent = "Message sent to NANO BOT!";
-    document.getElementById("message").value = "";
-
-  } catch (error) {
-    status.textContent = "Connection failed: " + error.message;
-    console.error(error);
-  }
-}
   </script>
+
 </body>
 </html>
